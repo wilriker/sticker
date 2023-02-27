@@ -5,7 +5,7 @@
 # Usage
 
 ```go
-ticker := sticker.New(schedRule.rule.FirstStart, rule.RunInterval)
+ticker := sticker.New(schedule.FirstStart, schedule.Interval)
 defer ticker.Stop()
 
 for {
@@ -18,3 +18,5 @@ for {
     }
 }
 ```
+
+Note that the `FirstStart` can be at any point in time. If it happens to be in the past the next correct occurrence of a tick will be calculated.
