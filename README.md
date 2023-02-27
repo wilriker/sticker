@@ -5,7 +5,7 @@
 # Usage
 
 ```go
-ticker := NewScheduledTicker(schedRule.rule.FirstStart, rule.RunInterval)
+ticker := sticker.New(schedRule.rule.FirstStart, rule.RunInterval)
 defer ticker.Stop()
 
 for {
