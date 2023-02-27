@@ -5,16 +5,16 @@
 # Usage
 
 ```go
-	ticker := NewScheduledTicker(schedRule.rule.FirstStart, rule.RunInterval)
-	defer ticker.Stop()
+ticker := NewScheduledTicker(schedRule.rule.FirstStart, rule.RunInterval)
+defer ticker.Stop()
 
-	for {
-		select {
-		case update := <-updateTicker:
-            ticker.Reset(update.FirstStart, update.Interval)
+for {
+    select {
+    case update := <-updateTicker:
+        ticker.Reset(update.FirstStart, update.Interval)
 
-		case <-ticker.C:
-			// Do your work
-		}
-	}
+    case <-ticker.C:
+        // Do your work
+    }
+}
 ```
