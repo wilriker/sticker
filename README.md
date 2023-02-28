@@ -1,5 +1,8 @@
 # sticker
 
+[![license](http://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/wilriker/sticker/master/LICENSE)
+[![GoDoc](https://godoc.org/github.com/wilriker/sticker?status.svg)](https://godoc.org/github.com/wilriker/sticker)
+
 `ScheduledTicker` provides a ticker similar to [`time.Ticker`](https://pkg.go.dev/time#Ticker) but can be scheduled to start at a specific point in time.
 
 # Usage
