@@ -1,11 +1,14 @@
+// Package sticker provides a ticker implementation similar to [time.Ticker] that can be configured to start ticking at a given point in time.
+//
+// It tries to mimick the API of time.Ticker as much as possible to be usable as a near drop-in replacement.
 package sticker
 
 import (
 	"errors"
-	time "time"
+	"time"
 )
 
-// ScheduledTicker provides a ticker similar to time.Ticker but can be scheduled to start at a specific point in time.
+// ScheduledTicker provides a ticker similar to [time.Ticker] but can be scheduled to start at a specific point in time.
 type ScheduledTicker struct {
 	C <-chan time.Time // The channel on which the ticks are delivered.
 
@@ -16,7 +19,7 @@ type ScheduledTicker struct {
 }
 
 // New returns a new ScheduleTicker that starts
-// ticking at Time first in the given interval.
+// ticking at time first in the given interval.
 // The duration interval must be greater than zero; if not, New will
 // panic. Stop the ticker to release associated resources.
 func New(first time.Time, interval time.Duration) *ScheduledTicker {
