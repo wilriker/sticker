@@ -77,17 +77,20 @@ func (st *ScheduledTicker) loop() {
 		select {
 		case <-st.stop:
 			return
-		case next := <-st.reset:
+		case nextStart := <-st.reset:
 			stopTickerTimer()
-			resetTimer = time.AfterFunc(time.Until(nextRun(next, st.interval)), func() {
+			resetTimer = time.AfterFunc(time.Until(nextRun(nextStart, st.interval)), func() {
 				st.ticks <- time.Now().UTC()
 				ticker = time.NewTicker(st.interval)
 				nextTick = ticker.C
 				nextTickUpdated <- struct{}{}
 			})
+		case <-nextTickUpdated:
+		// NOTE: this case seems unnecessary but is required because when nextTick is updated as part of Reset()
+		// select won't automatically recognize this and we need to take one loop to get the
+		// reference updated for the appropriate case.
 		case t := <-nextTick:
 			st.ticks <- t
-		case <-nextTickUpdated:
 		}
 	}
 }

@@ -91,7 +91,7 @@ func TestNewTickerPanicsOnNegativeInterval(t *testing.T) {
 	New(time.Time{}, -1)
 }
 
-func TestStopAfterReste(t *testing.T) {
+func TestStopAfterReset(t *testing.T) {
 	ticker := New(time.Now().UTC().Add(time.Hour), 1)
 	ticker.Stop()
 }
