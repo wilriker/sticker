@@ -66,7 +66,11 @@ func (st *ScheduledTicker) loop() {
 	var resetTimer *time.Timer
 
 	nextTickUpdated := make(chan struct{})
-	defer close(nextTickUpdated)
+	defer func() {
+		var ntu chan struct{}
+		ntu, nextTickUpdated = nextTickUpdated, nil
+		close(ntu)
+	}()
 
 	stopTickerTimer := func() {
 		nextTick = nil
@@ -87,21 +91,32 @@ func (st *ScheduledTicker) loop() {
 		case nextStart := <-st.reset:
 			stopTickerTimer()
 			resetTimer = time.AfterFunc(time.Until(nextRun(nextStart, st.interval)), func() {
-				st.ticks <- time.Now().UTC()
+				select {
+				case <-st.stop:
+					return
+				default:
+				}
+				sendTime(st.ticks, time.Now())
 				ticker = time.NewTicker(st.interval)
 				nextTick = ticker.C
-				nextTickUpdated <- struct{}{}
+				if nextTickUpdated != nil {
+					nextTickUpdated <- struct{}{}
+				}
 			})
 		case <-nextTickUpdated:
 		// NOTE: this case seems unnecessary but is required to have select reevaluate the reference to channel nextTick
 		// that was changed as part of calling Reset.
 
 		case t := <-nextTick:
-			select {
-			case st.ticks <- t:
-			default:
-			}
+			sendTime(st.ticks, t)
 		}
+	}
+}
+
+func sendTime(ticks chan<- time.Time, tick time.Time) {
+	select {
+	case ticks <- tick:
+	default:
 	}
 }
 

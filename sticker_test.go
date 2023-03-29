@@ -119,6 +119,40 @@ func TestStopAfterReset(t *testing.T) {
 	ticker.Stop()
 }
 
+func TestScheduledTicks(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode")
+	}
+	startAt := time.Now().Add(time.Second)
+	tk := New(startAt, time.Minute)
+	defer tk.Stop()
+	start := time.Now()
+	<-tk.C
+	passed := time.Since(start)
+	if passed < time.Second {
+		t.Errorf("tick too early, after %v", passed)
+	} else if passed > time.Second+3*time.Millisecond {
+		t.Errorf("tick too late, after %v", passed)
+	}
+
+}
+
+func TestDropOnSlowClient(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode")
+	}
+	startAt := time.Now()
+	interval := 100 * time.Millisecond
+	st := New(startAt, interval)
+	expextedTick := startAt.Add(interval)
+	defer st.Stop()
+	time.Sleep(5 * interval)
+	ticked := <-st.C
+	if ticked.Sub(expextedTick) >= 3*time.Millisecond {
+		t.Errorf("want: %v, got: %v", expextedTick, ticked)
+	}
+}
+
 func TestNextRun(t *testing.T) {
 	cases := []struct {
 		name       string
