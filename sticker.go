@@ -32,10 +32,10 @@ func New(first time.Time, interval time.Duration) *ScheduledTicker {
 	c := make(chan time.Time, 1)
 	ticker := &ScheduledTicker{
 		ticks: c,
+		C:     c,
 		stop:  make(chan struct{}),
 		reset: make(chan time.Time),
 	}
-	ticker.C = ticker.ticks
 	go ticker.loop()
 	ticker.Reset(first, interval)
 	return ticker
@@ -95,6 +95,7 @@ func (st *ScheduledTicker) loop() {
 		case <-nextTickUpdated:
 		// NOTE: this case seems unnecessary but is required to have select reevaluate the reference to channel nextTick
 		// that was changed as part of calling Reset.
+
 		case t := <-nextTick:
 			select {
 			case st.ticks <- t:
