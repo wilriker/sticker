@@ -24,10 +24,14 @@ type ScheduledTicker struct {
 // panic. Stop the ticker to release associated resources.
 func New(first time.Time, interval time.Duration) *ScheduledTicker {
 	if interval <= 0 {
-		panic(errors.New("non-positive interval for NewScheduledTicker"))
+		panic(errors.New("non-positive interval for New ScheduledTicker"))
 	}
+	// Give the channel a 1-element time buffer.
+	// If the client falls behind while reading, we drop ticks
+	// on the floor until the client catches up.
+	c := make(chan time.Time, 1)
 	ticker := &ScheduledTicker{
-		ticks: make(chan time.Time, 1),
+		ticks: c,
 		stop:  make(chan struct{}),
 		reset: make(chan time.Time),
 	}
@@ -41,6 +45,9 @@ func New(first time.Time, interval time.Duration) *ScheduledTicker {
 // The next tick will arrive at time next and then occur regularly at the new period.
 // If time next is in the past it will tick at the matching interval started from that point in the past.
 func (st *ScheduledTicker) Reset(next time.Time, interval time.Duration) {
+	if interval <= 0 {
+		panic(errors.New("non-positive interval for ScheduledTicker.Reset"))
+	}
 	st.interval = interval
 	st.reset <- next
 }
@@ -86,11 +93,13 @@ func (st *ScheduledTicker) loop() {
 				nextTickUpdated <- struct{}{}
 			})
 		case <-nextTickUpdated:
-		// NOTE: this case seems unnecessary but is required because when nextTick is updated as part of Reset()
-		// select won't automatically recognize this and we need to take one loop to get the
-		// reference updated for the appropriate case.
+		// NOTE: this case seems unnecessary but is required to have select reevaluate the reference to channel nextTick
+		// that was changed as part of calling Reset.
 		case t := <-nextTick:
-			st.ticks <- t
+			select {
+			case st.ticks <- t:
+			default:
+			}
 		}
 	}
 }
